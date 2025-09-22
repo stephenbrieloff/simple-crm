@@ -1,16 +1,25 @@
-import { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import { supabase } from './supabase'
 
-export const authOptions: NextAuthOptions = {
+if (!process.env.GOOGLE_CLIENT_ID) {
+  throw new Error('Missing GOOGLE_CLIENT_ID environment variable')
+}
+
+if (!process.env.GOOGLE_CLIENT_SECRET) {
+  throw new Error('Missing GOOGLE_CLIENT_SECRET environment variable')
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const authOptions: any = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async signIn({ user, account }: { user: any; account: any }) {
       if (account?.provider === 'google' && user.email) {
         try {
           // Check if user exists in our database
@@ -50,7 +59,8 @@ export const authOptions: NextAuthOptions = {
       }
       return false
     },
-    async session({ session, token }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async session({ session }: { session: any }) {
       if (session.user?.email) {
         // Get user ID from database
         const { data: user } = await supabase

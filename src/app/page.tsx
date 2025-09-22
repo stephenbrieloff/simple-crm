@@ -32,7 +32,7 @@ export default function Home() {
       } else {
         setError(data.error || 'Failed to fetch people')
       }
-    } catch (err) {
+    } catch {
       setError('Failed to fetch people')
     }
   }
@@ -74,7 +74,7 @@ export default function Home() {
       } else {
         setError(data.error || 'Failed to add person')
       }
-    } catch (err) {
+    } catch {
       setError('Failed to add person')
     } finally {
       setIsLoading(false)
