@@ -3,7 +3,6 @@ const nextConfig = {
   // Add some debugging for environment variables
   env: {
     // These will be available at build time
-    CUSTOM_KEY: 'my-value',
   },
   // Add some logging for debugging
   async rewrites() {

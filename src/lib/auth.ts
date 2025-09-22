@@ -1,5 +1,5 @@
 import GoogleProvider from 'next-auth/providers/google'
-import { supabase } from './supabase'
+import { supabaseAdmin } from './supabase'
 
 if (!process.env.GOOGLE_CLIENT_ID) {
   throw new Error('Missing GOOGLE_CLIENT_ID environment variable')
@@ -20,10 +20,10 @@ export const authOptions: any = {
   callbacks: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async signIn({ user, account }: { user: any; account: any }) {
-      if (account?.provider === 'google' && user.email) {
+      if (account?.provider === 'google' && user.email && supabaseAdmin) {
         try {
           // Check if user exists in our database
-          const { data: existingUser, error: fetchError } = await supabase
+          const { data: existingUser, error: fetchError } = await supabaseAdmin
             .from('users')
             .select('id')
             .eq('email', user.email)
@@ -36,7 +36,7 @@ export const authOptions: any = {
 
           // If user doesn't exist, create them
           if (!existingUser) {
-            const { error: insertError } = await supabase
+            const { error: insertError } = await supabaseAdmin
               .from('users')
               .insert([{
                 email: user.email,
@@ -61,9 +61,9 @@ export const authOptions: any = {
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async session({ session }: { session: any }) {
-      if (session.user?.email) {
+      if (session.user?.email && supabaseAdmin) {
         // Get user ID from database
-        const { data: user } = await supabase
+        const { data: user } = await supabaseAdmin
           .from('users')
           .select('id')
           .eq('email', session.user.email)

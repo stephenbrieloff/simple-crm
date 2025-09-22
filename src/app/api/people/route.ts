@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 
 export async function GET() {
   try {
@@ -11,8 +11,12 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+    }
+
     // Get user ID from database
-    const { data: user, error: userError } = await supabase
+    const { data: user, error: userError } = await supabaseAdmin
       .from('users')
       .select('id')
       .eq('email', session.user.email)
@@ -23,7 +27,7 @@ export async function GET() {
     }
 
     // Get user's people
-    const { data: people, error } = await supabase
+    const { data: people, error } = await supabaseAdmin
       .from('people')
       .select('*')
       .eq('user_id', user.id)
@@ -49,6 +53,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+    }
+
     const body = await request.json()
     const { name, company } = body
 
@@ -57,7 +65,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user ID from database
-    const { data: user, error: userError } = await supabase
+    const { data: user, error: userError } = await supabaseAdmin
       .from('users')
       .select('id')
       .eq('email', session.user.email)
@@ -68,7 +76,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the person
-    const { data: person, error } = await supabase
+    const { data: person, error } = await supabaseAdmin
       .from('people')
       .insert([{ 
         name: name.trim(),

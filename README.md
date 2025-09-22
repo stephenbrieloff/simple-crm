@@ -44,11 +44,20 @@ The most basic CRM in the world! Add people's names and view your contact list.
    - Run the SQL in `supabase-schema.sql` in your Supabase SQL Editor
 
 4. **Configure environment variables**
-   - Copy `.env.local` and update with your Supabase credentials:
+   - Copy `.env.local.example` to `.env.local` and update with your credentials:
    ```bash
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url_here
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+   cp .env.local.example .env.local
    ```
+   - Get your Supabase credentials:
+     - **Project URL and Anon Key**: Go to Settings > API in your Supabase dashboard
+     - **Service Role Key**: Go to Settings > API > Service Role (⚠️ Keep this secret!)
+   - Set up Google OAuth:
+     - Go to [Google Cloud Console](https://console.cloud.google.com/)
+     - Create OAuth 2.0 credentials for your application
+   - Generate a NextAuth secret:
+     ```bash
+     openssl rand -base64 32
+     ```
 
 5. **Run the development server**
    ```bash
