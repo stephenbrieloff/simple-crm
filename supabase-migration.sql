@@ -1,4 +1,4 @@
--- Create the users table for authentication
+-- First, create the users table for authentication
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email TEXT UNIQUE NOT NULL,
@@ -8,31 +8,31 @@ CREATE TABLE users (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create the people table with user relationship
-CREATE TABLE people (
-    id BIGSERIAL PRIMARY KEY,
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    company TEXT,
-    email TEXT,
-    phone TEXT,
-    notes TEXT,
-    follow_up_date DATE,
-    last_contact_date DATE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- Add new columns to the existing people table
+ALTER TABLE people 
+ADD COLUMN user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+ADD COLUMN company TEXT,
+ADD COLUMN email TEXT,
+ADD COLUMN phone TEXT,
+ADD COLUMN notes TEXT,
+ADD COLUMN follow_up_date DATE,
+ADD COLUMN last_contact_date DATE,
+ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
 
 -- Enable Row Level Security
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+-- people table should already have RLS enabled, but let's make sure
 ALTER TABLE people ENABLE ROW LEVEL SECURITY;
+
+-- Drop the old policy
+DROP POLICY IF EXISTS "Allow all operations on people" ON people;
 
 -- Create policies for users table
 CREATE POLICY "Users can view own profile" ON users
-    FOR SELECT USING (true); -- We'll allow reading for now
+    FOR SELECT USING (true);
 
 CREATE POLICY "Users can insert own profile" ON users
-    FOR INSERT WITH CHECK (true); -- Allow inserts for sign up
+    FOR INSERT WITH CHECK (true);
 
 -- Create policies for people table (user-specific data)
 CREATE POLICY "Users can view own people" ON people
@@ -57,3 +57,17 @@ CREATE POLICY "Users can delete own people" ON people
 
 -- Create an index for better performance
 CREATE INDEX idx_people_user_id ON people(user_id);
+
+-- Create a trigger to automatically update the updated_at column
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_people_updated_at 
+    BEFORE UPDATE ON people 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
